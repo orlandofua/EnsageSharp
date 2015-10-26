@@ -7,7 +7,7 @@ using SharpDX;
 
 namespace HuskarSharp
 {
-    class Program
+    internal class Program
     {
         private const Key ComboKey = Key.Space;
 
@@ -32,14 +32,14 @@ namespace HuskarSharp
         private static Item SolarCrest;
         private static Item Medallion;
         private static Item Blink;
+        private static Item Armlet;
         //private static Item Aghs;
+
         #endregion
 
         private static double turnTime;
         private const double LifebreakCastTime = 800;
         private const double InnervitalityCastTime = 830;
-
-        
 
 
         public static void Main(string[] args)
@@ -63,6 +63,7 @@ namespace HuskarSharp
             SolarCrest = null;
             Medallion = null;
             Blink = null;
+            Armlet = null;
 
             spellQ = null;
             spellR = null;
@@ -84,39 +85,7 @@ namespace HuskarSharp
                 spellQ = me.Spellbook.SpellQ;
                 spellR = me.Spellbook.SpellR;
 
-                // Items
-                if (Urn == null)
-                    Urn = me.FindItem("item_urn_of_shadows");
 
-                if (Abyssal == null)
-                    Abyssal = me.FindItem("item_abyssal_blade");
-                
-                if (Blademail == null)
-                    Blademail = me.FindItem("item_blade_mail");
-                
-                if (Mjollnir == null)
-                    Mjollnir = me.FindItem("item_mjollnir");
-                
-                if (Orchid == null) 
-                    Orchid = me.FindItem("item_orchid");
-                
-                if (Halberd == null)
-                    Halberd = me.FindItem("item_heavens_halberd");
-                
-                if (Satanic == null)
-                    Satanic = me.FindItem("item_satanic");
-                
-                if (Hex == null)
-                    Hex = me.FindItem("item_sheepstick");
-
-                if (Medallion == null)
-                    Medallion = me.FindItem("item_medallion_of_courage");
-
-                if (SolarCrest == null)
-                    SolarCrest = me.FindItem("item_solar_crest");
-
-                if (Blink == null)
-                    Blink = me.FindItem("item_blink");
                 //Aghs = me.FindItem("item_ultimate_scepter");
             }
 
@@ -136,6 +105,31 @@ namespace HuskarSharp
             {
                 return;
             }
+
+            // Items
+            Urn = me.FindItem("item_urn_of_shadows");
+
+            Abyssal = me.FindItem("item_abyssal_blade");
+
+            Blademail = me.FindItem("item_blade_mail");
+
+            Mjollnir = me.FindItem("item_mjollnir");
+
+            Orchid = me.FindItem("item_orchid");
+
+            Halberd = me.FindItem("item_heavens_halberd");
+
+            Satanic = me.FindItem("item_satanic");
+
+            Hex = me.FindItem("item_sheepstick");
+
+            Medallion = me.FindItem("item_medallion_of_courage");
+
+            SolarCrest = me.FindItem("item_solar_crest");
+
+            Blink = me.FindItem("item_blink");
+
+            Armlet = me.FindItem("item_armlet");
 
             if (rangeDisplay == null)
             {
@@ -193,15 +187,17 @@ namespace HuskarSharp
                         Utils.Sleep(turnTime*1000 + 100 + Game.Ping, "Blink");
                     }
 
-                    if (spellR.CanBeCasted(target) && me.Distance2D(target) <= spellR.CastRange && Utils.SleepCheck("R") && target != null && target.Health > (target.MaximumHealth * 0.5))
+                    if (spellR.CanBeCasted(target) && me.Distance2D(target) <= spellR.CastRange && Utils.SleepCheck("R") &&
+                        target != null && target.Health > (target.MaximumHealth*0.5))
                     {
                         spellR.UseAbility(target);
                         Utils.Sleep(LifebreakCastTime + Game.Ping, "R");
                     }
 
-                    if (Abyssal.CanBeCasted(target) && me.Distance2D(target) <= Abyssal.CastRange && Utils.SleepCheck("abyssal") && target != null)
+                    if (Abyssal.CanBeCasted(target) && me.Distance2D(target) <= Abyssal.CastRange &&
+                        Utils.SleepCheck("abyssal") && target != null)
                     {
-                        var canUse = Utils.ChainStun(target, turnTime + 0.1 + Game.Ping / 1000, null, false);
+                        var canUse = Utils.ChainStun(target, turnTime + 0.1 + Game.Ping/1000, null, false);
                         if (canUse)
                         {
                             Abyssal.UseAbility(target);
@@ -209,9 +205,10 @@ namespace HuskarSharp
                         }
                     }
 
-                    if (Hex.CanBeCasted(target) && me.Distance2D(target) <= (Hex.CastRange) && Utils.SleepCheck("hex") && target != null)
+                    if (Hex.CanBeCasted(target) && me.Distance2D(target) <= (Hex.CastRange) && Utils.SleepCheck("hex") &&
+                        target != null)
                     {
-                        var canUse = Utils.ChainStun(target, turnTime + 0.1 + Game.Ping / 1000, null, false);
+                        var canUse = Utils.ChainStun(target, turnTime + 0.1 + Game.Ping/1000, null, false);
                         if (canUse)
                         {
                             Hex.UseAbility(target);
@@ -219,7 +216,8 @@ namespace HuskarSharp
                         }
                     }
 
-                    if (Urn.CanBeCasted(target) && me.Distance2D(target) <= Urn.CastRange && Urn.CurrentCharges >= 1 && Utils.SleepCheck("Urn") && target != null)
+                    if (Urn.CanBeCasted(target) && me.Distance2D(target) <= Urn.CastRange && Urn.CurrentCharges >= 1 &&
+                        Utils.SleepCheck("Urn") && target != null)
                     {
                         Urn.UseAbility(target);
                         Utils.Sleep(turnTime*1000 + 100 + Game.Ping, "Urn");
@@ -239,43 +237,47 @@ namespace HuskarSharp
                         Utils.Sleep(turnTime*1000 + 100 + Game.Ping, "SolarCrest");
                     }
 
-                    if (Blademail.CanBeCasted() && me.Distance2D(target) < target.AttackRange && Utils.SleepCheck("Blademail") && target != null)
+                    if (Blademail.CanBeCasted() && me.Distance2D(target) < target.AttackRange &&
+                        Utils.SleepCheck("Blademail") && target != null)
                     {
                         Blademail.UseAbility();
                         Utils.Sleep(turnTime*1000 + 100 + Game.Ping, "Blademail");
                     }
 
-                    if (Mjollnir.CanBeCasted(me) && target.IsValid && me.Distance2D(target) <= spellR.CastRange && Utils.SleepCheck("Mjollnir") && target != null)
+                    if (Mjollnir.CanBeCasted(me) && target.IsValid && me.Distance2D(target) <= spellR.CastRange &&
+                        Utils.SleepCheck("Mjollnir") && target != null)
                     {
                         Mjollnir.UseAbility(me);
                         Utils.Sleep(turnTime*1000 + 100 + Game.Ping, "Mjollnir");
                     }
 
-                    if (Orchid.CanBeCasted(target) && me.Distance2D(target) <= Orchid.CastRange && Utils.SleepCheck("Orchid") && target != null)
+                    if (Orchid.CanBeCasted(target) && me.Distance2D(target) <= Orchid.CastRange &&
+                        Utils.SleepCheck("Orchid") && target != null)
                     {
                         Orchid.UseAbility(target);
                         Utils.Sleep(turnTime*1000 + 100 + Game.Ping, "Orchid");
                     }
 
                     if (Halberd.CanBeCasted(target) && me.Distance2D(target) <= Halberd.CastRange &&
-                        (!target.IsHexed() && !target.IsStunned() && !target.IsDisarmed()) && Utils.SleepCheck("Halberd") && target != null)
+                        (!target.IsHexed() && !target.IsStunned() && !target.IsDisarmed()) &&
+                        Utils.SleepCheck("Halberd") && target != null)
                     {
                         Halberd.UseAbility(target);
                         Utils.Sleep(turnTime*1000 + 100 + Game.Ping, "Halberd");
                     }
 
-                    if (Satanic.CanBeCasted() && me.Health <= (me.MaximumHealth * 0.30) && me.Distance2D(target) <= lastRange)
+                    if (Satanic.CanBeCasted() && me.Health <= (me.MaximumHealth*0.30) &&
+                        me.Distance2D(target) <= lastRange)
                     {
                         Satanic.UseAbility();
                     }
 
-                    if (spellQ.CanBeCasted() && me.Health <= (me.MaximumHealth * 0.6) && Utils.SleepCheck("Q"))
+                    if (spellQ.CanBeCasted() && me.Health <= (me.MaximumHealth*0.6) && Utils.SleepCheck("Q"))
                     {
                         spellQ.UseAbility(me);
                         Utils.Sleep(InnervitalityCastTime + Game.Ping, "Q");
                     }
                 }
-
                 Orbwalking.Orbwalk(target, attackmodifiers: true);
             }
         }
