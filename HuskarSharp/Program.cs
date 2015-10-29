@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Linq;
+using System.Runtime.Remoting.Messaging;
 using System.Windows.Input;
 using Ensage;
 using Ensage.Common;
@@ -40,6 +42,7 @@ namespace HuskarSharp
         private static double turnTime;
         private const double LifebreakCastTime = 800;
         private const double InnervitalityCastTime = 830;
+        private static bool armletState;
 
 
         public static void Main(string[] args)
@@ -131,6 +134,7 @@ namespace HuskarSharp
 
             Armlet = me.FindItem("item_armlet");
 
+
             if (rangeDisplay == null)
             {
                 rangeDisplay = me.AddParticleEffect(@"particles\ui_mouseactions\range_display.vpcf");
@@ -176,11 +180,52 @@ namespace HuskarSharp
 
             if (Game.IsKeyDown(ComboKey))
             {
+                if (Armlet != null && me.CanUseItems())
+                {
+                    var enemiesInRange =
+                        ObjectMgr.GetEntities<Hero>()
+                            .Where(x => me.Distance2D(x) <= lastRange && x.IsAlive && x.Team != me.Team).ToList();
+                    var projectiles =
+                        ObjectMgr.Projectiles.Where(
+                            x =>
+                                x.Target != null && x.Target == me && (me.Distance2D(x.Position)/x.Speed)*1000 < 600/2.5)
+                            .ToList();
+
+                    if (me.Health > 250 && enemiesInRange.Count > 0)
+                    {
+                        if (!me.IsStunned() && me.IsAlive && !Armlet.IsToggled &&
+                            !me.Modifiers.Any(x => x.Name == "modifier_item_armlet_unholy_strength") &&
+                            Utils.SleepCheck("Armlet"))
+                        {
+//                            Console.WriteLine("Activating Armlet!");
+                            Armlet.ToggleAbility();
+                            Utils.Sleep(100 + Game.Ping, "Armlet");
+                        }
+                    }
+                    else if (me.Health > 250 && enemiesInRange.Count < 1 && !me.IsStunned() && Armlet.IsToggled &&
+                             Utils.SleepCheck("Armlet") &&
+                             me.Modifiers.Any(x => x.Name == "modifier_item_armlet_unholy_strength"))
+                    {
+//                        Console.WriteLine("Deactivating Armlet!");
+                        Armlet.ToggleAbility();
+                        Utils.Sleep(100 + Game.Ping, "Armlet");
+                    }
+                    else if (me.Health < 250 && projectiles.Any() && Armlet.IsToggled && !me.IsStunned() &&
+                             Utils.SleepCheck("Armlet"))
+                    {
+//                        Console.WriteLine("Toggling armlet!");
+                        Armlet.ToggleAbility();
+                        Armlet.ToggleAbility();
+                        Utils.Sleep(100 + Game.Ping, "Armlet");
+                    }
+                }
+
                 if (target != null)
                 {
                     turnTime = me.GetTurnTime(target);
 
-                    if (Blink.CanBeCasted() && me.Distance2D(target) <= Blink.CastRange && Utils.SleepCheck("Blink") &&
+                    if (Blink != null && Blink.CanBeCasted() && me.Distance2D(target) <= Blink.CastRange &&
+                        Utils.SleepCheck("Blink") &&
                         target != null)
                     {
                         Blink.UseAbility(target.Position);
@@ -188,13 +233,13 @@ namespace HuskarSharp
                     }
 
                     if (spellR.CanBeCasted(target) && me.Distance2D(target) <= spellR.CastRange && Utils.SleepCheck("R") &&
-                        target != null && target.Health > (target.MaximumHealth*0.5))
+                        target != null && target.Health > (target.MaximumHealth*0.5) && !target.IsMagicImmune())
                     {
                         spellR.UseAbility(target);
                         Utils.Sleep(LifebreakCastTime + Game.Ping, "R");
                     }
 
-                    if (Abyssal.CanBeCasted(target) && me.Distance2D(target) <= Abyssal.CastRange &&
+                    if (Abyssal != null && Abyssal.CanBeCasted(target) && me.Distance2D(target) <= Abyssal.CastRange &&
                         Utils.SleepCheck("abyssal") && target != null)
                     {
                         var canUse = Utils.ChainStun(target, turnTime + 0.1 + Game.Ping/1000, null, false);
@@ -205,7 +250,8 @@ namespace HuskarSharp
                         }
                     }
 
-                    if (Hex.CanBeCasted(target) && me.Distance2D(target) <= (Hex.CastRange) && Utils.SleepCheck("hex") &&
+                    if (Hex != null && Hex.CanBeCasted(target) && me.Distance2D(target) <= (Hex.CastRange) &&
+                        Utils.SleepCheck("hex") &&
                         target != null)
                     {
                         var canUse = Utils.ChainStun(target, turnTime + 0.1 + Game.Ping/1000, null, false);
@@ -216,49 +262,54 @@ namespace HuskarSharp
                         }
                     }
 
-                    if (Urn.CanBeCasted(target) && me.Distance2D(target) <= Urn.CastRange && Urn.CurrentCharges >= 1 &&
-                        Utils.SleepCheck("Urn") && target != null)
+                    if (Urn != null && Urn.CanBeCasted(target) && me.Distance2D(target) <= Urn.CastRange &&
+                        Urn.CurrentCharges >= 1 &&
+                        Utils.SleepCheck("Urn") && target != null &&
+                        target.Modifiers.All(x => x.Name != "modifier_item_urn_heal"))
                     {
                         Urn.UseAbility(target);
                         Utils.Sleep(turnTime*1000 + 100 + Game.Ping, "Urn");
                     }
 
-                    if (Medallion.CanBeCasted(target) && me.Distance2D(target) <= Medallion.CastRange &&
+                    if (Medallion != null && Medallion.CanBeCasted(target) &&
+                        me.Distance2D(target) <= Medallion.CastRange &&
                         Utils.SleepCheck("Medallion") && target != null)
                     {
                         Medallion.UseAbility(target);
                         Utils.Sleep(turnTime*1000 + 100 + Game.Ping, "Medallion");
                     }
 
-                    if (SolarCrest.CanBeCasted(target) && me.Distance2D(target) <= SolarCrest.CastRange &&
+                    if (SolarCrest != null && SolarCrest.CanBeCasted(target) &&
+                        me.Distance2D(target) <= SolarCrest.CastRange &&
                         Utils.SleepCheck("SolarCrest") && target != null)
                     {
                         SolarCrest.UseAbility(target);
                         Utils.Sleep(turnTime*1000 + 100 + Game.Ping, "SolarCrest");
                     }
 
-                    if (Blademail.CanBeCasted() && me.Distance2D(target) < target.AttackRange &&
+                    if (Blademail != null && Blademail.CanBeCasted() && me.Distance2D(target) < target.AttackRange &&
                         Utils.SleepCheck("Blademail") && target != null)
                     {
                         Blademail.UseAbility();
                         Utils.Sleep(turnTime*1000 + 100 + Game.Ping, "Blademail");
                     }
 
-                    if (Mjollnir.CanBeCasted(me) && target.IsValid && me.Distance2D(target) <= spellR.CastRange &&
+                    if (Mjollnir != null && Mjollnir.CanBeCasted(me) && target.IsValid &&
+                        me.Distance2D(target) <= spellR.CastRange &&
                         Utils.SleepCheck("Mjollnir") && target != null)
                     {
                         Mjollnir.UseAbility(me);
                         Utils.Sleep(turnTime*1000 + 100 + Game.Ping, "Mjollnir");
                     }
 
-                    if (Orchid.CanBeCasted(target) && me.Distance2D(target) <= Orchid.CastRange &&
+                    if (Orchid != null && Orchid.CanBeCasted(target) && me.Distance2D(target) <= Orchid.CastRange &&
                         Utils.SleepCheck("Orchid") && target != null)
                     {
                         Orchid.UseAbility(target);
                         Utils.Sleep(turnTime*1000 + 100 + Game.Ping, "Orchid");
                     }
 
-                    if (Halberd.CanBeCasted(target) && me.Distance2D(target) <= Halberd.CastRange &&
+                    if (Halberd != null && Halberd.CanBeCasted(target) && me.Distance2D(target) <= Halberd.CastRange &&
                         (!target.IsHexed() && !target.IsStunned() && !target.IsDisarmed()) &&
                         Utils.SleepCheck("Halberd") && target != null)
                     {
@@ -266,19 +317,26 @@ namespace HuskarSharp
                         Utils.Sleep(turnTime*1000 + 100 + Game.Ping, "Halberd");
                     }
 
-                    if (Satanic.CanBeCasted() && me.Health <= (me.MaximumHealth*0.30) &&
+                    if (Satanic != null && Satanic.CanBeCasted() && me.Health <= (me.MaximumHealth*0.20) &&
                         me.Distance2D(target) <= lastRange)
                     {
                         Satanic.UseAbility();
                     }
 
-                    if (spellQ.CanBeCasted() && me.Health <= (me.MaximumHealth*0.6) && Utils.SleepCheck("Q"))
+                    if (spellQ.CanBeCasted() && me.Health <= (me.MaximumHealth*0.4) && Utils.SleepCheck("Q") && !me.Modifiers.Any(x => x.Name == "modifier_"))
                     {
                         spellQ.UseAbility(me);
                         Utils.Sleep(InnervitalityCastTime + Game.Ping, "Q");
                     }
                 }
-                Orbwalking.Orbwalk(target, attackmodifiers: true);
+                if (target != null && target.IsMagicImmune())
+                {
+                    Orbwalking.Orbwalk(target, Game.Ping);
+                }
+                else if (target == null || !target.IsMagicImmune())
+                {
+                    Orbwalking.Orbwalk(target, Game.Ping, attackmodifiers: true);
+                }
             }
         }
     }
