@@ -323,7 +323,7 @@ namespace HuskarSharp
                         Satanic.UseAbility();
                     }
 
-                    if (spellQ.CanBeCasted() && me.Health <= (me.MaximumHealth*0.4) && Utils.SleepCheck("Q") && !me.Modifiers.Any(x => x.Name == "modifier_"))
+                    if (spellQ.CanBeCasted() && me.Health <= (me.MaximumHealth*0.4) && Utils.SleepCheck("Q"))
                     {
                         spellQ.UseAbility(me);
                         Utils.Sleep(InnervitalityCastTime + Game.Ping, "Q");
