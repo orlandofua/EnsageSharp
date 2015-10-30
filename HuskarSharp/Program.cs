@@ -67,6 +67,7 @@ namespace HuskarSharp
             Medallion = null;
             Blink = null;
             Armlet = null;
+            loaded = false;
 
             spellQ = null;
             spellR = null;
