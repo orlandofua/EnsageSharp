@@ -14,7 +14,7 @@ namespace SupportSharp
         private static Entity fountain;
         private static bool loaded;
         private const Key SupportKey = Key.Space;
-        private static Item Urn, Meka, Guardian, Arcane, LotusOrb, Medallion, SolarCrest;
+        private static Item Urn, Meka, Guardian, Arcane, LotusOrb, Medallion, SolarCrest, GlimmerCape;
         private static Hero needMana;
         private static Hero needMeka;
         private static Hero target;
@@ -80,6 +80,7 @@ namespace SupportSharp
             LotusOrb = me.FindItem("item_lotus_orb");
             Medallion = me.FindItem("item_medallion_of_courage");
             SolarCrest = me.FindItem("item_solar_crest");
+            GlimmerCape = me.FindItem("item_glimmer_cape");
 
             needMana = null;
             needMeka = null;
@@ -138,7 +139,7 @@ namespace SupportSharp
                                 }
                             }
 
-                            if (IsInDanger(ally))
+                            if (IsInDanger(ally) && me.CanUseItems())
                             {
                                 if (LotusOrb != null && LotusOrb.Cooldown == 0 && Utils.SleepCheck("LotusOrb") &&
                                     me.Distance2D(ally) <= LotusOrb.CastRange + 50)
@@ -159,6 +160,13 @@ namespace SupportSharp
                                 {
                                     SolarCrest.UseAbility(ally);
                                     Utils.Sleep(100 + Game.Ping, "SolarCrest");
+                                }
+
+                                if (GlimmerCape != null && GlimmerCape.Cooldown == 0 &&
+                                    me.Distance2D(ally) <= GlimmerCape.CastRange + 50 && Utils.SleepCheck("GlimmerCape"))
+                                {
+                                    GlimmerCape.UseAbility(ally);
+                                    Utils.Sleep(100 + Game.Ping, "GlimmerCape");
                                 }
                             }
                         }
