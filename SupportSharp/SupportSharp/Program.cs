@@ -207,7 +207,7 @@ namespace SupportSharp
                         case ClassID.CDOTA_Unit_Hero_Chen:
                             Save(me, me.Spellbook.SpellE, new float[] {6, 5, 4, 3}, me.Spellbook.SpellE.CastRange);
                             Heal(me, me.Spellbook.SpellR, new float[] {200, 300, 400},
-                                (int) me.Spellbook.SpellR.CastRange, 2);
+                                me.Spellbook.SpellR.CastRange, 2);
                             break;
                         case ClassID.CDOTA_Unit_Hero_Dazzle:
 //                            Console.WriteLine("Hero is dazzle!");
@@ -242,9 +242,13 @@ namespace SupportSharp
                                 750,
                                 1);
                             break;
+                        case ClassID.CDOTA_Unit_Hero_Shadow_Demon:
+                            Save(me, me.Spellbook.SpellQ, new float[] {3, 3, 3, 3},
+                                me.Spellbook.SpellQ.CastRange);
+                            break;
                         case ClassID.CDOTA_Unit_Hero_Treant:
                             Heal(me, me.Spellbook.SpellE, new float[] {60, 105, 150, 195},
-                                (int) me.Spellbook.SpellE.CastRange, 1);
+                                me.Spellbook.SpellE.CastRange, 1);
                             break;
                         case ClassID.CDOTA_Unit_Hero_Undying:
                             var unitsAround =
@@ -266,6 +270,10 @@ namespace SupportSharp
                                     },
                                     750, 1);
                             }
+                            break;
+                        case ClassID.CDOTA_Unit_Hero_Warlock:
+                            Heal(me, me.Spellbook.SpellW, new float[] {165, 275, 385, 495},
+                                me.Spellbook.SpellW.CastRange, 1);
                             break;
                         case ClassID.CDOTA_Unit_Hero_Winter_Wyvern:
                             Heal(me, me.Spellbook.SpellE, new[] {0.03f, 0.04f, 0.05f, 0.06f},
@@ -338,7 +346,7 @@ namespace SupportSharp
             }
         }
 
-        private static void Heal(Hero self, Ability healSpell, float[] amount, int range, int targettingType)
+        private static void Heal(Hero self, Ability healSpell, float[] amount, uint range, int targettingType)
         {
             if (healSpell != null && healSpell.CanBeCasted())
             {
@@ -467,7 +475,6 @@ namespace SupportSharp
                 {
                     return true;
                 }
-
             }
             return false;
         }
@@ -482,7 +489,8 @@ namespace SupportSharp
                 hero == ClassID.CDOTA_Unit_Hero_Wisp || hero == ClassID.CDOTA_Unit_Hero_Centaur ||
                 hero == ClassID.CDOTA_Unit_Hero_Undying || hero == ClassID.CDOTA_Unit_Hero_WitchDoctor ||
                 hero == ClassID.CDOTA_Unit_Hero_Necrolyte || hero == ClassID.CDOTA_Unit_Hero_Warlock ||
-                hero == ClassID.CDOTA_Unit_Hero_Rubick || hero == ClassID.CDOTA_Unit_Hero_Huskar)
+                hero == ClassID.CDOTA_Unit_Hero_Rubick || hero == ClassID.CDOTA_Unit_Hero_Huskar ||
+                hero == ClassID.CDOTA_Unit_Hero_Shadow_Demon)
             {
                 return true;
             }
