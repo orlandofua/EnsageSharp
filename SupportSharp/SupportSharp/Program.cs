@@ -533,9 +533,10 @@ namespace SupportSharp
         {
             if (destination != null)
             {
-                if (healSpell.CanBeCasted())
+                if (healSpell.CanBeCasted() && Utils.SleepCheck("Casting Heal"))
                 {
                     healSpell.UseAbility(destination);
+                    Utils.Sleep(100 + Game.Ping, "Casting Heal");
                 }
             }
             else
