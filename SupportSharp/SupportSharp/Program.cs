@@ -17,7 +17,7 @@ namespace SupportSharp
         private const Key toggleKey = Key.T;
         private const Key orbwalkKey = Key.Space;
         private const Key saveSelfKey = Key.Y;
-        private static Item Urn, Meka, Guardian, Arcane, LotusOrb, Medallion, SolarCrest, GlimmerCape;
+        private static Item Urn, Meka, Guardian, Arcane, LotusOrb, Medallion, SolarCrest, GlimmerCape, Pipe, CrimsonGuard;
         private static Hero needMana;
         private static Hero needMeka;
         private static Hero target;
@@ -38,6 +38,9 @@ namespace SupportSharp
             LotusOrb = null;
             Medallion = null;
             SolarCrest = null;
+            GlimmerCape = null;
+            Pipe = null;
+            CrimsonGuard = null;
 
             loaded = false;
             supportActive = false;
@@ -68,7 +71,7 @@ namespace SupportSharp
                 me = ObjectMgr.LocalHero;
 
 
-                if (!Game.IsInGame || Game.IsWatchingGame || me == null || !Support(me.ClassID) || Game.IsChatOpen)
+                if (!Game.IsInGame || Game.IsWatchingGame || me == null || Game.IsChatOpen)
                 {
                     return;
                 }
@@ -97,6 +100,8 @@ namespace SupportSharp
             Medallion = me.FindItem("item_medallion_of_courage");
             SolarCrest = me.FindItem("item_solar_crest");
             GlimmerCape = me.FindItem("item_glimmer_cape");
+            Pipe = me.FindItem("item_pipe");
+            CrimsonGuard = me.FindItem("item_crimson_guard");
 
             needMana = null;
             needMeka = null;
@@ -178,6 +183,37 @@ namespace SupportSharp
                                     }
                                 }
                             }
+
+                            //Pipe and Crimson Guard
+                            if (((Pipe != null && Pipe.CanBeCasted()) || (CrimsonGuard != null && CrimsonGuard.CanBeCasted())) && me.CanUseItems())
+                            {
+                                var enemiesInRadius =
+                                    ObjectMgr.GetEntities<Hero>()
+                                        .Where(x => x.Team != me.Team && x.IsAlive && me.Distance2D(x) <= 1500).ToList();
+                                var alliesInRadius =
+                                    ObjectMgr.GetEntities<Hero>()
+                                        .Where(x => x.Team == me.Team && x.IsAlive && me.Distance2D(x) <= 900).ToList();
+
+                                if (enemiesInRadius.Any() && alliesInRadius.Any())
+                                {
+                                    if (enemiesInRadius.Count >= 2 && alliesInRadius.Count >= 2)
+                                    {
+                                        if (Pipe != null && Pipe.CanBeCasted() && Utils.SleepCheck("Pipe"))
+                                        {
+                                            Pipe.UseAbility();
+                                            Utils.Sleep(100 + Game.Ping, "Pipe");
+                                        }
+
+                                        if (CrimsonGuard != null && CrimsonGuard.CanBeCasted() &&
+                                            Utils.SleepCheck("CrimsonGuard"))
+                                        {
+                                            CrimsonGuard.UseAbility();
+                                            Utils.Sleep(100 + Game.Ping, "CrimsonGuard");
+                                        }
+                                    }
+                                }
+                            }
+                            
 
                             if (IsInDanger(ally) && me.CanUseItems())
                             {
