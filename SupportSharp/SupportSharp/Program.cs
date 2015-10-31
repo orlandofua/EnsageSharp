@@ -14,7 +14,7 @@ namespace SupportSharp
         private static Entity fountain;
         private static bool loaded;
         private const Key SupportKey = Key.Space;
-        private static Item Urn, Meka, Guardian, Arcane;
+        private static Item Urn, Meka, Guardian, Arcane, LotusOrb, Medallion, SolarCrest;
         private static Hero needMana;
         private static Hero needMeka;
         private static Hero target;
@@ -30,6 +30,9 @@ namespace SupportSharp
             Meka = null;
             Guardian = null;
             Arcane = null;
+            LotusOrb = null;
+            Medallion = null;
+            SolarCrest = null;
 
             loaded = false;
         }
@@ -74,6 +77,9 @@ namespace SupportSharp
             Meka = me.FindItem("item_mekansm");
             Guardian = me.FindItem("item_guardian_greaves");
             Arcane = me.FindItem("item_arcane_boots");
+            LotusOrb = me.FindItem("item_lotus_orb");
+            Medallion = me.FindItem("item_medallion_of_courage");
+            SolarCrest = me.FindItem("item_solar_crest");
 
             needMana = null;
             needMeka = null;
@@ -107,15 +113,17 @@ namespace SupportSharp
                             if (Urn != null && Urn.CanBeCasted(ally) && Urn.CurrentCharges > 0 &&
                                 !ally.Modifiers.Any(x => x.Name == "modifier_item_urn_heal"))
                             {
-                                if (me.Distance2D(ally) <= 950 && !IsInDanger(ally))
+                                if (me.Distance2D(ally) <= 950 && !IsInDanger(ally) && Utils.SleepCheck("Urn"))
                                 {
 //                                    Console.WriteLine("Using Urn");
                                     Urn.UseAbility(ally);
+                                    Utils.Sleep(100 + Game.Ping, "Urn");
                                 }
                                 if (ally.Modifiers.Any(x => x.Name == "modifier_wisp_tether") &&
-                                    (ally.MaximumHealth - ally.Health) >= 600)
+                                    (ally.MaximumHealth - ally.Health) >= 600 && Utils.SleepCheck("Urn"))
                                 {
                                     Urn.UseAbility(me);
+                                    Utils.Sleep(100 + Game.Ping, "Urn");
                                 }
                             }
 
@@ -127,6 +135,30 @@ namespace SupportSharp
                                     {
                                         needMana = ally;
                                     }
+                                }
+                            }
+
+                            if (IsInDanger(ally))
+                            {
+                                if (LotusOrb != null && LotusOrb.Cooldown == 0 && Utils.SleepCheck("LotusOrb") &&
+                                    me.Distance2D(ally) <= LotusOrb.CastRange + 50)
+                                {
+                                    LotusOrb.UseAbility(ally);
+                                    Utils.Sleep(100 + Game.Ping, "LotusOrb");
+                                }
+
+                                if (Medallion != null && Medallion.Cooldown == 0 &&
+                                    me.Distance2D(ally) <= Medallion.CastRange + 50 && Utils.SleepCheck("Medallion"))
+                                {
+                                    Medallion.UseAbility(ally);
+                                    Utils.Sleep(100 + Game.Ping, "Medallion");
+                                }
+
+                                if (SolarCrest != null && SolarCrest.Cooldown == 0 &&
+                                    me.Distance2D(ally) <= SolarCrest.CastRange + 50 && Utils.SleepCheck("SolarCrest"))
+                                {
+                                    SolarCrest.UseAbility(ally);
+                                    Utils.Sleep(100 + Game.Ping, "SolarCrest");
                                 }
                             }
                         }
@@ -153,6 +185,7 @@ namespace SupportSharp
                     Console.Write("Using Arcane");
                     Arcane.UseAbility();
                 }
+
 
                 if (Support(me.ClassID))
                 {
@@ -359,7 +392,8 @@ namespace SupportSharp
                                     }
                                 }
                             }
-                            else if (targettingType == 3 && ally.Health > (ally.MaximumHealth*0.7) && healSpell.IsToggled && Utils.SleepCheck("ToggleHeal"))
+                            else if (targettingType == 3 && ally.Health > (ally.MaximumHealth*0.7) && healSpell.IsToggled &&
+                                     Utils.SleepCheck("ToggleHeal"))
                             {
                                 CastHeal(healSpell);
                                 Utils.Sleep(100 + Game.Ping, "ToggleHeal");
@@ -433,6 +467,7 @@ namespace SupportSharp
                 {
                     return true;
                 }
+
             }
             return false;
         }
