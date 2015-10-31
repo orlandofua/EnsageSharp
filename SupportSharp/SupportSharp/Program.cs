@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Windows.Input;
 using Ensage;
 using Ensage.Common;
@@ -13,11 +14,15 @@ namespace SupportSharp
         private static Hero me;
         private static Entity fountain;
         private static bool loaded;
-        private const Key SupportKey = Key.Space;
+        private const Key toggleKey = Key.T;
+        private const Key orbwalkKey = Key.Space;
+        private const Key saveSelfKey = Key.Y;
         private static Item Urn, Meka, Guardian, Arcane, LotusOrb, Medallion, SolarCrest, GlimmerCape;
         private static Hero needMana;
         private static Hero needMeka;
         private static Hero target;
+        private static bool supportActive;
+        private static bool includeSaveSelf;
 
         private static void Main(string[] args)
         {
@@ -35,14 +40,23 @@ namespace SupportSharp
             SolarCrest = null;
 
             loaded = false;
+            supportActive = false;
+            includeSaveSelf = false;
         }
 
         private static void Drawing_OnDraw(EventArgs args)
         {
             if (loaded)
             {
-                var mode = Game.IsKeyDown(SupportKey) ? "ON" : "OFF";
-                Drawing.DrawText("Auto Support is: " + mode + ". Hotkey: " + SupportKey + "",
+                var mode = supportActive ? "ON" : "OFF";
+                var orbwalkMode = Game.IsKeyDown(orbwalkKey) ? "ON" : "OFF";
+                var includeSelfMode = includeSaveSelf ? "ON" : "OFF";
+                Drawing.DrawText("Auto Support is: " + mode + ". Hotkey (Toggle): " + toggleKey + "",
+                    new Vector2(Drawing.Width*5/100, Drawing.Height*4/100), Color.LightGreen, FontFlags.DropShadow);
+                Drawing.DrawText("Orbwalk is: " + orbwalkMode + ". Hotkey (HOLD): " + orbwalkKey + "",
+                    new Vector2(Drawing.Width*5/100, Drawing.Height*6/100), Color.LightGreen, FontFlags.DropShadow);
+                Drawing.DrawText(
+                    "Include Saving yourself?: " + includeSelfMode + ". Hotkey (TOGGLE): " + saveSelfKey + "",
                     new Vector2(Drawing.Width*5/100, Drawing.Height*8/100), Color.LightGreen, FontFlags.DropShadow);
             }
         }
@@ -54,7 +68,7 @@ namespace SupportSharp
                 me = ObjectMgr.LocalHero;
 
 
-                if (!Game.IsInGame || Game.IsWatchingGame || me == null || !Support(me.ClassID))
+                if (!Game.IsInGame || Game.IsWatchingGame || me == null || !Support(me.ClassID) || Game.IsChatOpen)
                 {
                     return;
                 }
@@ -65,6 +79,8 @@ namespace SupportSharp
             {
                 loaded = false;
                 me = ObjectMgr.LocalHero;
+                supportActive = false;
+                includeSaveSelf = false;
                 return;
             }
 
@@ -85,7 +101,31 @@ namespace SupportSharp
             needMana = null;
             needMeka = null;
 
-            if (Game.IsKeyDown(SupportKey))
+            if (Game.IsKeyDown(toggleKey))
+            {
+                if (!supportActive)
+                {
+                    supportActive = true;
+                }
+                else
+                {
+                    supportActive = false;
+                }
+            }
+
+            if (Game.IsKeyDown(saveSelfKey))
+            {
+                if (!includeSaveSelf)
+                {
+                    includeSaveSelf = true;
+                }
+                else
+                {
+                    includeSaveSelf = false;
+                }
+            }
+
+            if (supportActive)
             {
                 var allies = ObjectMgr.GetEntities<Hero>().Where(ally => ally.Team == me.Team).ToList();
                 fountain =
@@ -293,7 +333,10 @@ namespace SupportSharp
                             break;
                     }
                 }
+            }
 
+            if (Game.IsKeyDown(orbwalkKey))
+            {
                 if (target != null && (!target.IsValid || !target.IsVisible || !target.IsAlive || target.Health <= 0))
                 {
                     target = null;
@@ -320,31 +363,61 @@ namespace SupportSharp
         }
 
         private static void Save(Hero self, Ability saveSpell, float[] duration, uint castRange = 0,
-            int targettingType = 1)
+            int targettingType = 1, bool CastOnSelf = true)
         {
             if (saveSpell != null && saveSpell.CanBeCasted())
             {
                 if (self.IsAlive && !self.IsChanneling() &&
                     (!self.IsInvisible() || !me.Modifiers.Any(x => x.Name == "modifier_treant_natures_guise")))
                 {
-                    var allies =
+                    var alliesExcludeMe =
                         ObjectMgr.GetEntities<Hero>()
                             .Where(
-                                x => x.Team == me.Team && self.Distance2D(x) <= castRange && IsInDanger(x) && x.IsAlive)
+                                x =>
+                                    x.Team == self.Team && self.Distance2D(x) <= castRange && IsInDanger(x) && !Equals(x, self))
+                            .ToList();
+                    var alliesIncludeMe =
+                        ObjectMgr.GetEntities<Hero>()
+                            .Where(
+                                x =>
+                                    x.Team == self.Team && self.Distance2D(x) <= castRange && IsInDanger(x) && x.IsAlive)
                             .ToList();
 
-                    if (allies.Any())
+                    if (includeSaveSelf)
                     {
-                        foreach (var ally in allies)
+                        if (alliesIncludeMe.Any())
                         {
-                            if (ally.Health <= (ally.MaximumHealth*0.3))
+                            foreach (var ally in alliesIncludeMe)
                             {
-                                if (targettingType == 1)
+                                if (ally.Health <= (ally.MaximumHealth*0.3))
                                 {
-                                    if (Utils.SleepCheck("saveduration"))
+                                    if (targettingType == 1)
                                     {
-                                        saveSpell.UseAbility(ally);
-                                        Utils.Sleep(duration[saveSpell.Level - 1] + Game.Ping, "saveduration");
+                                        if (Utils.SleepCheck("saveduration"))
+                                        {
+                                            saveSpell.UseAbility(ally);
+                                            Utils.Sleep(duration[saveSpell.Level - 1] + Game.Ping, "saveduration");
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (alliesExcludeMe.Any())
+                        {
+                            foreach (var ally in alliesExcludeMe)
+                            {
+                                if (ally.Health <= (ally.MaximumHealth*0.3))
+                                {
+                                    if (targettingType == 1)
+                                    {
+                                        if (Utils.SleepCheck("saveduration"))
+                                        {
+                                            saveSpell.UseAbility(ally);
+                                            Utils.Sleep(duration[saveSpell.Level - 1] + Game.Ping, "saveduration");
+                                        }
                                     }
                                 }
                             }
@@ -464,7 +537,8 @@ namespace SupportSharp
                     "modifier_item_urn_damage", "modifier_doom_bringer_doom", "modifier_axe_battle_hunger",
                     "modifier_queenofpain_shadow_strike", "modifier_phoenix_fire_spirit_burn",
                     "modifier_venomancer_poison_nova", "modifier_venomancer_venomous_gale",
-                    "modifier_silencer_curse_of_the_silent", "modifier_silencer_last_word"
+                    "modifier_silencer_curse_of_the_silent", "modifier_silencer_last_word", "modifier_bane_fiends_grip",
+                    "modifier_earth_spirit_magnetize", "modifier_jakiro_macropyre", "modifier_nerolyte_reapers_scythe"
                 };
 
                 foreach (var buff in buffs)
