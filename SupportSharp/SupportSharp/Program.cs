@@ -335,7 +335,7 @@ namespace SupportSharp
                                     CastHeal(healSpell);
                                 else if (targettingType == 3)
                                 {
-                                    if (healSpell.CanBeCasted() && !healSpell.IsChanneling)
+                                    /*if (healSpell.CanBeCasted() && !healSpell.IsChanneling)
                                     {
                                         Console.Write("Casting Heal");
                                         CastHeal(healSpell);
@@ -347,8 +347,22 @@ namespace SupportSharp
                                             Console.Write("Casting Heal");
                                             CastHeal(healSpell);
                                         }
+                                    }*/
+
+                                    if (healSpell.CanBeCasted() && Utils.SleepCheck("ToggleHeal"))
+                                    {
+                                        if (!healSpell.IsToggled)
+                                        {
+                                            CastHeal(healSpell);
+                                            Utils.Sleep(100 + Game.Ping, "ToggleHeal");
+                                        }
                                     }
                                 }
+                            }
+                            else if (targettingType == 3 && ally.Health > (ally.MaximumHealth*0.7) && healSpell.IsToggled && Utils.SleepCheck("ToggleHeal"))
+                            {
+                                CastHeal(healSpell);
+                                Utils.Sleep(100 + Game.Ping, "ToggleHeal");
                             }
                         }
                     }
