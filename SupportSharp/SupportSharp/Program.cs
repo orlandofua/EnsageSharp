@@ -16,7 +16,18 @@ namespace SupportSharp
         private const Key toggleKey = Key.T;
         private const Key orbwalkKey = Key.Space;
         private const Key saveSelfKey = Key.Y;
-        private static Item Urn, Meka, Guardian, Arcane, LotusOrb, Medallion, SolarCrest, GlimmerCape, Pipe, CrimsonGuard;
+
+        private static Item Urn,
+            Meka,
+            Guardian,
+            Arcane,
+            LotusOrb,
+            Medallion,
+            SolarCrest,
+            GlimmerCape,
+            Pipe,
+            CrimsonGuard;
+
         private static Hero needMana;
         private static Hero needMeka;
         private static Hero target;
@@ -133,7 +144,10 @@ namespace SupportSharp
 
             if (supportActive)
             {
-                var allies = ObjectMgr.GetEntities<Hero>().Where(ally => ally.Team == me.Team && ally.IsAlive && !ally.IsIllusion).ToList();
+                var allies =
+                    ObjectMgr.GetEntities<Hero>()
+                        .Where(ally => ally.Team == me.Team && ally.IsAlive && !ally.IsIllusion)
+                        .ToList();
                 fountain =
                     ObjectMgr.GetEntities<Entity>()
                         .First(entity => entity.ClassID == ClassID.CDOTA_Unit_Fountain && entity.Team == me.Team);
@@ -160,7 +174,8 @@ namespace SupportSharp
                             if (Urn != null && Urn.CanBeCasted() && Urn.CurrentCharges > 0 &&
                                 !ally.Modifiers.Any(x => x.Name == "modifier_item_urn_heal"))
                             {
-                                if (me.Distance2D(ally) <= 950 && !IsInDanger(ally) && Utils.SleepCheck("Urn") && ally.Health <= (ally.MaximumHealth * 0.7))
+                                if (me.Distance2D(ally) <= 950 && !IsInDanger(ally) && Utils.SleepCheck("Urn") &&
+                                    ally.Health <= (ally.MaximumHealth*0.7))
                                 {
 //                                    Console.WriteLine("Using Urn");
                                     Urn.UseAbility(ally);
@@ -186,14 +201,21 @@ namespace SupportSharp
                             }
 
                             //Pipe and Crimson Guard
-                            if (((Pipe != null && Pipe.CanBeCasted()) || (CrimsonGuard != null && CrimsonGuard.CanBeCasted())) && me.CanUseItems())
+                            if (((Pipe != null && Pipe.CanBeCasted()) ||
+                                 (CrimsonGuard != null && CrimsonGuard.CanBeCasted())) && me.CanUseItems())
                             {
                                 var enemiesInRadius =
                                     ObjectMgr.GetEntities<Hero>()
-                                        .Where(x => x.Team != me.Team && x.IsAlive && me.Distance2D(x) <= 1500 && !x.IsIllusion).ToList();
+                                        .Where(
+                                            x =>
+                                                x.Team != me.Team && x.IsAlive && me.Distance2D(x) <= 1500 &&
+                                                !x.IsIllusion).ToList();
                                 var alliesInRadius =
                                     ObjectMgr.GetEntities<Hero>()
-                                        .Where(x => x.Team == me.Team && x.IsAlive && me.Distance2D(x) <= 900 && !x.IsIllusion).ToList();
+                                        .Where(
+                                            x =>
+                                                x.Team == me.Team && x.IsAlive && me.Distance2D(x) <= 900 &&
+                                                !x.IsIllusion).ToList();
 
                                 if (enemiesInRadius.Any() && alliesInRadius.Any())
                                 {
@@ -214,7 +236,7 @@ namespace SupportSharp
                                     }
                                 }
                             }
-                            
+
 
                             if (IsInDanger(ally) && me.CanUseItems())
                             {
@@ -226,14 +248,16 @@ namespace SupportSharp
                                 }
 
                                 if (Medallion != null && Medallion.Cooldown == 0 &&
-                                    me.Distance2D(ally) <= Medallion.CastRange + 50 && Utils.SleepCheck("Medallion") && ally != me)
+                                    me.Distance2D(ally) <= Medallion.CastRange + 50 && Utils.SleepCheck("Medallion") &&
+                                    ally != me)
                                 {
                                     Medallion.UseAbility(ally);
                                     Utils.Sleep(100 + Game.Ping, "Medallion");
                                 }
 
                                 if (SolarCrest != null && SolarCrest.Cooldown == 0 &&
-                                    me.Distance2D(ally) <= SolarCrest.CastRange + 50 && Utils.SleepCheck("SolarCrest") && ally != me)
+                                    me.Distance2D(ally) <= SolarCrest.CastRange + 50 && Utils.SleepCheck("SolarCrest") &&
+                                    ally != me)
                                 {
                                     SolarCrest.UseAbility(ally);
                                     Utils.Sleep(100 + Game.Ping, "SolarCrest");
@@ -274,13 +298,6 @@ namespace SupportSharp
 
                 if (Support(me.ClassID))
                 {
-                    if (Utils.SleepCheck("Logging hero support"))
-                    {
-//                        Console.WriteLine("Hero is support!");
-//                        Console.WriteLine("Checking classID");
-                        Utils.Sleep(100 + Game.Ping, "Logging hero support");
-                    }
-
                     switch (me.ClassID)
                     {
                         case ClassID.CDOTA_Unit_Hero_Abaddon:
@@ -410,13 +427,15 @@ namespace SupportSharp
                         ObjectMgr.GetEntities<Hero>()
                             .Where(
                                 x =>
-                                    x.Team == self.Team && self.Distance2D(x) <= castRange && IsInDanger(x) && !Equals(x, self) && !x.IsIllusion && x.IsAlive)
+                                    x.Team == self.Team && self.Distance2D(x) <= castRange && IsInDanger(x) &&
+                                    !Equals(x, self) && !x.IsIllusion && x.IsAlive)
                             .ToList();
                     var alliesIncludeMe =
                         ObjectMgr.GetEntities<Hero>()
                             .Where(
                                 x =>
-                                    x.Team == self.Team && self.Distance2D(x) <= castRange && IsInDanger(x) && x.IsAlive && !x.IsIllusion && x.IsAlive)
+                                    x.Team == self.Team && self.Distance2D(x) <= castRange && IsInDanger(x) && x.IsAlive &&
+                                    !x.IsIllusion && x.IsAlive)
                             .ToList();
 
                     if (includeSaveSelf)
@@ -552,13 +571,16 @@ namespace SupportSharp
 
         private static bool IsInDanger(Hero ally)
         {
-            if (ally != null && ally.IsAlive && ally.Health > 0)
+            if (ally != null && ally.IsAlive)
             {
+                var percHealth = ally.Health <= (ally.MaximumHealth*0.7);
                 var enemies =
                     ObjectMgr.GetEntities<Hero>()
-                        .Where(entity => entity.Team != ally.Team && entity.IsAlive && entity.IsVisible && !entity.IsIllusion)
+                        .Where(
+                            entity =>
+                                entity.Team != ally.Team && entity.IsAlive && entity.IsVisible && !entity.IsIllusion)
                         .ToList();
-                if (enemies.Any())
+                if (enemies.Any() && percHealth)
                 {
                     foreach (var enemy in enemies)
                     {
@@ -579,7 +601,10 @@ namespace SupportSharp
                     "modifier_queenofpain_shadow_strike", "modifier_phoenix_fire_spirit_burn",
                     "modifier_venomancer_poison_nova", "modifier_venomancer_venomous_gale",
                     "modifier_silencer_curse_of_the_silent", "modifier_silencer_last_word", "modifier_bane_fiends_grip",
-                    "modifier_earth_spirit_magnetize", "modifier_jakiro_macropyre", "modifier_nerolyte_reapers_scythe"
+                    "modifier_earth_spirit_magnetize", "modifier_jakiro_macropyre", "modifier_nerolyte_reapers_scythe",
+                    "modifier_batrider_flaming_lasso", "modifier_sniper_assassinate", "modifier_pudge_dismember",
+                    "modifier_enigma_black_hole_pull", "modifier_disruptor_static_storm", "modifier_sand_king_epicenter",
+                    "modifier_bloodseeker_rupture"
                 };
 
                 foreach (var buff in buffs)
@@ -602,7 +627,6 @@ namespace SupportSharp
                 return false;
             }
             return false;
-
         }
 
         private static bool Support(ClassID hero)
