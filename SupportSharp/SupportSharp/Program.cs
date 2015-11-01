@@ -12,7 +12,7 @@ namespace SupportSharp
     internal class Program
     {
         private const Key toggleKey = Key.T;
-        private const Key orbwalkKey = Key.Space;
+        private const Key orbwalkKey = Key.X;
         private const Key saveSelfKey = Key.Y;
         private static Hero me;
         private static Entity fountain;
