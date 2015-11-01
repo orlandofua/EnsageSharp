@@ -53,7 +53,7 @@ namespace SupportSharp
             CrimsonGuard = null;
 
             loaded = false;
-            supportActive = false;
+            supportActive = true;
             includeSaveSelf = false;
         }
 
@@ -116,30 +116,33 @@ namespace SupportSharp
             needMana = null;
             needMeka = null;
 
-            if (Game.IsKeyDown(toggleKey) && Utils.SleepCheck("togglingoption"))
+            if (!Game.IsChatOpen)
             {
-                if (!supportActive)
+                if (Game.IsKeyDown(toggleKey) && Utils.SleepCheck("togglingoption"))
                 {
-                    supportActive = true;
+                    if (!supportActive)
+                    {
+                        supportActive = true;
+                    }
+                    else
+                    {
+                        supportActive = false;
+                    }
+                    Utils.Sleep(100 + Game.Ping, "togglingoption");
                 }
-                else
-                {
-                    supportActive = false;
-                }
-                Utils.Sleep(100 + Game.Ping, "togglingoption");
-            }
 
-            if (Game.IsKeyDown(saveSelfKey) && Utils.SleepCheck("togglingoption"))
-            {
-                if (!includeSaveSelf)
+                if (Game.IsKeyDown(saveSelfKey) && Utils.SleepCheck("togglingoption"))
                 {
-                    includeSaveSelf = true;
+                    if (!includeSaveSelf)
+                    {
+                        includeSaveSelf = true;
+                    }
+                    else
+                    {
+                        includeSaveSelf = false;
+                    }
+                    Utils.Sleep(100 + Game.Ping, "togglingoption");
                 }
-                else
-                {
-                    includeSaveSelf = false;
-                }
-                Utils.Sleep(100 + Game.Ping, "togglingoption");
             }
 
             if (supportActive)
@@ -301,19 +304,19 @@ namespace SupportSharp
                     switch (me.ClassID)
                     {
                         case ClassID.CDOTA_Unit_Hero_Abaddon:
-                            Save(me, me.Spellbook.SpellW, new float[] {15, 15, 15, 15}, me.Spellbook.SpellW.CastRange);
+                            Save(me, me.Spellbook.SpellW, 1000, me.Spellbook.SpellW.CastRange);
                             Heal(me, me.Spellbook.SpellQ, new float[] {100, 150, 200, 250},
                                 800,
                                 1);
                             break;
                         case ClassID.CDOTA_Unit_Hero_Chen:
-                            Save(me, me.Spellbook.SpellE, new float[] {6, 5, 4, 3}, me.Spellbook.SpellE.CastRange);
+                            Save(me, me.Spellbook.SpellE, 1000, me.Spellbook.SpellE.CastRange);
                             Heal(me, me.Spellbook.SpellR, new float[] {200, 300, 400},
                                 me.Spellbook.SpellR.CastRange, 2);
                             break;
                         case ClassID.CDOTA_Unit_Hero_Dazzle:
 //                            Console.WriteLine("Hero is dazzle!");
-                            Save(me, me.Spellbook.SpellW, new float[] {5, 5, 5, 5}, me.Spellbook.SpellW.CastRange);
+                            Save(me, me.Spellbook.SpellW, 300, me.Spellbook.SpellW.CastRange);
                             Heal(me, me.Spellbook.SpellE, new float[] {80, 100, 120, 140},
                                 750,
                                 1);
@@ -336,16 +339,16 @@ namespace SupportSharp
                             Heal(me, me.Spellbook.SpellQ, new float[] {90, 180, 270, 360},
                                 950,
                                 1);
-                            Save(me, me.Spellbook.SpellW, new float[] {6, 8, 10, 12}, me.Spellbook.SpellW.CastRange);
+                            Save(me, me.Spellbook.SpellW, 1570, me.Spellbook.SpellW.CastRange);
                             break;
                         case ClassID.CDOTA_Unit_Hero_Oracle:
-                            Save(me, me.Spellbook.SpellR, new float[] {6, 7, 8}, me.Spellbook.SpellR.CastRange);
+                            Save(me, me.Spellbook.SpellR, 1270, me.Spellbook.SpellR.CastRange);
                             Heal(me, me.Spellbook.SpellE, new float[] {99, 198, 297, 396},
                                 750,
                                 1);
                             break;
                         case ClassID.CDOTA_Unit_Hero_Shadow_Demon:
-                            Save(me, me.Spellbook.SpellQ, new float[] {3, 3, 3, 3},
+                            Save(me, me.Spellbook.SpellQ, 900,
                                 me.Spellbook.SpellQ.CastRange);
                             break;
                         case ClassID.CDOTA_Unit_Hero_Treant:
@@ -378,7 +381,7 @@ namespace SupportSharp
                                 me.Spellbook.SpellW.CastRange, 1);
                             break;
                         case ClassID.CDOTA_Unit_Hero_Winter_Wyvern:
-                            Save(me, me.Spellbook.SpellE, new float[] {4, 4, 4, 4}, me.Spellbook.SpellE.CastRange);
+                            Save(me, me.Spellbook.SpellE, 930, me.Spellbook.SpellE.CastRange);
                             break;
                         case ClassID.CDOTA_Unit_Hero_WitchDoctor:
                             Heal(me, me.Spellbook.SpellW, new float[] {16, 24, 32, 40}, 500,
@@ -415,7 +418,7 @@ namespace SupportSharp
             }
         }
 
-        private static void Save(Hero self, Ability saveSpell, float[] duration, uint castRange = 0,
+        private static void Save(Hero self, Ability saveSpell, float castTime = 800, uint castRange = 0,
             int targettingType = 1)
         {
             if (saveSpell != null && saveSpell.CanBeCasted())
@@ -451,7 +454,7 @@ namespace SupportSharp
                                         if (Utils.SleepCheck("saveduration"))
                                         {
                                             saveSpell.UseAbility(ally);
-                                            Utils.Sleep(duration[saveSpell.Level - 1] + Game.Ping, "saveduration");
+                                            Utils.Sleep(castTime + Game.Ping, "saveduration");
                                         }
                                     }
                                 }
@@ -471,7 +474,7 @@ namespace SupportSharp
                                         if (Utils.SleepCheck("saveduration"))
                                         {
                                             saveSpell.UseAbility(ally);
-                                            Utils.Sleep(duration[saveSpell.Level - 1] + Game.Ping, "saveduration");
+                                            Utils.Sleep(castTime + Game.Ping, "saveduration");
                                         }
                                     }
                                 }
@@ -604,7 +607,7 @@ namespace SupportSharp
                     "modifier_earth_spirit_magnetize", "modifier_jakiro_macropyre", "modifier_nerolyte_reapers_scythe",
                     "modifier_batrider_flaming_lasso", "modifier_sniper_assassinate", "modifier_pudge_dismember",
                     "modifier_enigma_black_hole_pull", "modifier_disruptor_static_storm", "modifier_sand_king_epicenter",
-                    "modifier_bloodseeker_rupture"
+                    "modifier_bloodseeker_rupture", "modifier_dual_breath_burn", "modifier_jakiro_liquid_fire_burn"
                 };
 
                 foreach (var buff in buffs)
