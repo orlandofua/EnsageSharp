@@ -288,17 +288,6 @@ namespace SupportSharp
                                                     x.AbilityBehavior == AbilityBehavior.UnitTarget &&
                                                     ally.Distance2D(enemy) <= x.CastRange + 50);
 
-                                        if (targettedSpell || targettedItem)
-                                        {
-                                            shouldCastLotusOrb = true;
-                                        }
-                                    }
-                                }
-
-                                if (enemyList.Any())
-                                {
-                                    foreach (var enemy in enemyList)
-                                    {
                                         var enemySkill =
                                             enemy.Spellbook.Spells.Any(
                                                 x =>
@@ -311,9 +300,13 @@ namespace SupportSharp
                                         {
                                             shouldCastGlimmerCape = true;
                                         }
+
+                                        if (targettedSpell || targettedItem)
+                                        {
+                                            shouldCastLotusOrb = true;
+                                        }
                                     }
                                 }
-
 
                                 if (LotusOrb != null && LotusOrb.Cooldown == 0 && Utils.SleepCheck("LotusOrb") &&
                                     me.Distance2D(ally) <= LotusOrb.CastRange + 50 &&
