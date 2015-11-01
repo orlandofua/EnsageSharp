@@ -132,7 +132,7 @@ namespace SupportSharp
 
             if (supportActive)
             {
-                var allies = ObjectMgr.GetEntities<Hero>().Where(ally => ally.Team == me.Team).ToList();
+                var allies = ObjectMgr.GetEntities<Hero>().Where(ally => ally.Team == me.Team && ally.IsAlive && !ally.IsIllusion).ToList();
                 fountain =
                     ObjectMgr.GetEntities<Entity>()
                         .First(entity => entity.ClassID == ClassID.CDOTA_Unit_Fountain && entity.Team == me.Team);
@@ -189,10 +189,10 @@ namespace SupportSharp
                             {
                                 var enemiesInRadius =
                                     ObjectMgr.GetEntities<Hero>()
-                                        .Where(x => x.Team != me.Team && x.IsAlive && me.Distance2D(x) <= 1500).ToList();
+                                        .Where(x => x.Team != me.Team && x.IsAlive && me.Distance2D(x) <= 1500 && !x.IsIllusion).ToList();
                                 var alliesInRadius =
                                     ObjectMgr.GetEntities<Hero>()
-                                        .Where(x => x.Team == me.Team && x.IsAlive && me.Distance2D(x) <= 900).ToList();
+                                        .Where(x => x.Team == me.Team && x.IsAlive && me.Distance2D(x) <= 900 && !x.IsIllusion).ToList();
 
                                 if (enemiesInRadius.Any() && alliesInRadius.Any())
                                 {
@@ -410,13 +410,13 @@ namespace SupportSharp
                         ObjectMgr.GetEntities<Hero>()
                             .Where(
                                 x =>
-                                    x.Team == self.Team && self.Distance2D(x) <= castRange && IsInDanger(x) && !Equals(x, self))
+                                    x.Team == self.Team && self.Distance2D(x) <= castRange && IsInDanger(x) && !Equals(x, self) && !x.IsIllusion && x.IsAlive)
                             .ToList();
                     var alliesIncludeMe =
                         ObjectMgr.GetEntities<Hero>()
                             .Where(
                                 x =>
-                                    x.Team == self.Team && self.Distance2D(x) <= castRange && IsInDanger(x) && x.IsAlive)
+                                    x.Team == self.Team && self.Distance2D(x) <= castRange && IsInDanger(x) && x.IsAlive && !x.IsIllusion && x.IsAlive)
                             .ToList();
 
                     if (includeSaveSelf)
@@ -476,7 +476,7 @@ namespace SupportSharp
                         ObjectMgr.GetEntities<Hero>()
                             .Where(
                                 entity =>
-                                    entity.Team == self.Team && self.Distance2D(entity) <= range)
+                                    entity.Team == self.Team && self.Distance2D(entity) <= range && !entity.IsIllusion && entity.IsAlive)
                             .ToList();
 
                     if (heroes.Any())
