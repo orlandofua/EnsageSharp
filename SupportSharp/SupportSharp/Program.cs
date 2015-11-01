@@ -267,7 +267,7 @@ namespace SupportSharp
                 }
                 if (needMana != null && Arcane != null && Arcane.CanBeCasted() && me.Distance2D(needMana) <= 600)
                 {
-                    Console.Write("Using Arcane");
+//                    Console.Write("Using Arcane");
                     Arcane.UseAbility();
                 }
 
