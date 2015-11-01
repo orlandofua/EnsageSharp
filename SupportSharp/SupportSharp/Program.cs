@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
 using System.Windows.Input;
 using Ensage;
 using Ensage.Common;
@@ -106,7 +105,7 @@ namespace SupportSharp
             needMana = null;
             needMeka = null;
 
-            if (Game.IsKeyDown(toggleKey))
+            if (Game.IsKeyDown(toggleKey) && Utils.SleepCheck("togglingoption"))
             {
                 if (!supportActive)
                 {
@@ -116,9 +115,10 @@ namespace SupportSharp
                 {
                     supportActive = false;
                 }
+                Utils.Sleep(100 + Game.Ping, "togglingoption");
             }
 
-            if (Game.IsKeyDown(saveSelfKey))
+            if (Game.IsKeyDown(saveSelfKey) && Utils.SleepCheck("togglingoption"))
             {
                 if (!includeSaveSelf)
                 {
@@ -128,6 +128,7 @@ namespace SupportSharp
                 {
                     includeSaveSelf = false;
                 }
+                Utils.Sleep(100 + Game.Ping, "togglingoption");
             }
 
             if (supportActive)
@@ -156,10 +157,10 @@ namespace SupportSharp
                                 }
                             }
 
-                            if (Urn != null && Urn.CanBeCasted(ally) && Urn.CurrentCharges > 0 &&
+                            if (Urn != null && Urn.CanBeCasted() && Urn.CurrentCharges > 0 &&
                                 !ally.Modifiers.Any(x => x.Name == "modifier_item_urn_heal"))
                             {
-                                if (me.Distance2D(ally) <= 950 && !IsInDanger(ally) && Utils.SleepCheck("Urn"))
+                                if (me.Distance2D(ally) <= 950 && !IsInDanger(ally) && Utils.SleepCheck("Urn") && ally.Health <= (ally.MaximumHealth * 0.7))
                                 {
 //                                    Console.WriteLine("Using Urn");
                                     Urn.UseAbility(ally);
@@ -225,14 +226,14 @@ namespace SupportSharp
                                 }
 
                                 if (Medallion != null && Medallion.Cooldown == 0 &&
-                                    me.Distance2D(ally) <= Medallion.CastRange + 50 && Utils.SleepCheck("Medallion"))
+                                    me.Distance2D(ally) <= Medallion.CastRange + 50 && Utils.SleepCheck("Medallion") && ally != me)
                                 {
                                     Medallion.UseAbility(ally);
                                     Utils.Sleep(100 + Game.Ping, "Medallion");
                                 }
 
                                 if (SolarCrest != null && SolarCrest.Cooldown == 0 &&
-                                    me.Distance2D(ally) <= SolarCrest.CastRange + 50 && Utils.SleepCheck("SolarCrest"))
+                                    me.Distance2D(ally) <= SolarCrest.CastRange + 50 && Utils.SleepCheck("SolarCrest") && ally != me)
                                 {
                                     SolarCrest.UseAbility(ally);
                                     Utils.Sleep(100 + Game.Ping, "SolarCrest");
@@ -399,7 +400,7 @@ namespace SupportSharp
         }
 
         private static void Save(Hero self, Ability saveSpell, float[] duration, uint castRange = 0,
-            int targettingType = 1, bool CastOnSelf = true)
+            int targettingType = 1)
         {
             if (saveSpell != null && saveSpell.CanBeCasted())
             {
@@ -465,7 +466,7 @@ namespace SupportSharp
 
         private static void Heal(Hero self, Ability healSpell, float[] amount, uint range, int targettingType)
         {
-            if (healSpell != null && healSpell.CanBeCasted())
+            if (healSpell != null && healSpell.CanBeCasted() && !self.IsChanneling())
             {
                 if (self.IsAlive && !self.IsChanneling() &&
                     (!self.IsInvisible() || !me.Modifiers.Any(x => x.Name == "modifier_treant_natures_guise")) &&
@@ -476,7 +477,8 @@ namespace SupportSharp
                         ObjectMgr.GetEntities<Hero>()
                             .Where(
                                 entity =>
-                                    entity.Team == self.Team && self.Distance2D(entity) <= range && !entity.IsIllusion && entity.IsAlive)
+                                    entity.Team == self.Team && self.Distance2D(entity) <= range && !entity.IsIllusion &&
+                                    entity.IsAlive)
                             .ToList();
 
                     if (heroes.Any())
@@ -555,17 +557,20 @@ namespace SupportSharp
             {
                 var enemies =
                     ObjectMgr.GetEntities<Hero>()
-                        .Where(entity => entity.Team != ally.Team && entity.IsAlive && entity.IsVisible)
+                        .Where(entity => entity.Team != ally.Team && entity.IsAlive && entity.IsVisible && !entity.IsIllusion)
                         .ToList();
-                foreach (var enemy in enemies)
+                if (enemies.Any())
                 {
-                    if (ally.Distance2D(enemy) < enemy.AttackRange + 50)
+                    foreach (var enemy in enemies)
                     {
-                        return true;
-                    }
-                    if (enemy.Spellbook.Spells.Any(abilities => ally.Distance2D(enemy) < abilities.CastRange + 50))
-                    {
-                        return true;
+                        if (ally.Distance2D(enemy) < enemy.AttackRange + 50)
+                        {
+                            return true;
+                        }
+                        if (enemy.Spellbook.Spells.Any(abilities => ally.Distance2D(enemy) < abilities.CastRange + 50))
+                        {
+                            return true;
+                        }
                     }
                 }
 
@@ -594,8 +599,11 @@ namespace SupportSharp
                 {
                     return true;
                 }
+
+                return false;
             }
             return false;
+
         }
 
         private static bool Support(ClassID hero)
