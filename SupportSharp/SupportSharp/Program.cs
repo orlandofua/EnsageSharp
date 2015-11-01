@@ -361,8 +361,7 @@ namespace SupportSharp
                                 me.Spellbook.SpellW.CastRange, 1);
                             break;
                         case ClassID.CDOTA_Unit_Hero_Winter_Wyvern:
-                            Heal(me, me.Spellbook.SpellE, new[] {0.03f, 0.04f, 0.05f, 0.06f},
-                                1000, 1);
+                            Save(me, me.Spellbook.SpellE, new float[] {4, 4, 4, 4}, me.Spellbook.SpellE.CastRange);
                             break;
                         case ClassID.CDOTA_Unit_Hero_WitchDoctor:
                             Heal(me, me.Spellbook.SpellW, new float[] {16, 24, 32, 40}, 500,
