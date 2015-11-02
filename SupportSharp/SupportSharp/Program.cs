@@ -567,7 +567,7 @@ namespace SupportSharp
                             .Where(
                                 entity =>
                                     entity.Team == self.Team && self.Distance2D(entity) <= range && !entity.IsIllusion &&
-                                    entity.IsAlive && !Equals(entity, me));
+                                    entity.IsAlive && !Equals(entity, me)).ToList();
 
                     if (heroes.Any())
                     {
