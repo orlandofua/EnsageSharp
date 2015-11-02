@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Input;
 using Ensage;
@@ -371,7 +370,7 @@ namespace SupportSharp
                             Save(me, me.Spellbook.SpellW, 1000, me.Spellbook.SpellW.CastRange);
                             Heal(me, me.Spellbook.SpellQ, new float[] {100, 150, 200, 250},
                                 800,
-                                1);
+                                1, false);
                             break;
                         case ClassID.CDOTA_Unit_Hero_Chen:
                             Save(me, me.Spellbook.SpellE, 1000, me.Spellbook.SpellE.CastRange);
@@ -548,7 +547,8 @@ namespace SupportSharp
             }
         }
 
-        private static void Heal(Hero self, Ability healSpell, float[] amount, uint range, int targettingType)
+        private static void Heal(Hero self, Ability healSpell, float[] amount, uint range, int targettingType,
+            bool targetSelf = true)
         {
             if (healSpell != null && healSpell.CanBeCasted() && !self.IsChanneling())
             {
@@ -556,13 +556,18 @@ namespace SupportSharp
                     (!self.IsInvisible() || !me.Modifiers.Any(x => x.Name == "modifier_treant_natures_guise")) &&
                     self.Distance2D(fountain) > 2000)
                 {
-                    var heroes =
-                        ObjectMgr.GetEntities<Hero>()
+                    var heroes = targetSelf
+                        ? ObjectMgr.GetEntities<Hero>()
                             .Where(
                                 entity =>
                                     entity.Team == self.Team && self.Distance2D(entity) <= range && !entity.IsIllusion &&
                                     entity.IsAlive)
-                            .ToList();
+                            .ToList()
+                        : ObjectMgr.GetEntities<Hero>()
+                            .Where(
+                                entity =>
+                                    entity.Team == self.Team && self.Distance2D(entity) <= range && !entity.IsIllusion &&
+                                    entity.IsAlive && !Equals(entity, me));
 
                     if (heroes.Any())
                     {
