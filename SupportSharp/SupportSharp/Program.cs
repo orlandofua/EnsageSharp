@@ -375,7 +375,7 @@ namespace SupportSharp
                         case ClassID.CDOTA_Unit_Hero_Chen:
                             Save(me, me.Spellbook.SpellE, 1000, me.Spellbook.SpellE.CastRange);
                             Heal(me, me.Spellbook.SpellR, new float[] {200, 300, 400},
-                                me.Spellbook.SpellR.CastRange, 2);
+                                2200000, 2);
                             break;
                         case ClassID.CDOTA_Unit_Hero_Dazzle:
                             Save(me, me.Spellbook.SpellW, 300, me.Spellbook.SpellW.CastRange);
@@ -415,7 +415,7 @@ namespace SupportSharp
                             break;
                         case ClassID.CDOTA_Unit_Hero_Treant:
                             Heal(me, me.Spellbook.SpellE, new float[] {60, 105, 150, 195},
-                                me.Spellbook.SpellE.CastRange, 1);
+                                2200000, 1);
                             break;
                         case ClassID.CDOTA_Unit_Hero_Undying:
                             var unitsAround =
