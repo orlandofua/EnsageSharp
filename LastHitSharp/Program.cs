@@ -355,7 +355,7 @@ namespace LastHitSharp
 
         private static void Player_OnExecuteOrder(Player sender, ExecuteOrderEventArgs args)
         {
-            if (args.Order == Order.MoveLocation)
+            if (active && (args.Order == Order.MoveLocation || args.Order == Order.Stop || args.Target == null))
             {
                 target = null;
                 return;
