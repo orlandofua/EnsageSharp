@@ -332,11 +332,11 @@ namespace LastHitSharp
                         {
                             if (me.ClassID == ClassID.CDOTA_Unit_Hero_Bristleback)
                             {
-                                Utils.Sleep(aPoint*0.80 + 100 + Game.Ping, "stop");
+                                Utils.Sleep(aPoint*0.80 + Game.Ping, "stop");
                             }
                             else
                             {
-                                Utils.Sleep(aPoint + 100 + Game.Ping, "stop");
+                                Utils.Sleep(aPoint + Game.Ping, "stop");
                             }
                             me.Hold();
                             me.Attack((Unit) target);
@@ -355,6 +355,12 @@ namespace LastHitSharp
 
         private static void Player_OnExecuteOrder(Player sender, ExecuteOrderEventArgs args)
         {
+            if (args.Order == Order.MoveLocation)
+            {
+                target = null;
+                return;
+            }
+
             if (active && !Game.IsPaused && !Game.IsChatOpen && Equals(sender, me.Player))
             {
                 damage = me.MinimumDamage + me.BonusDamage;
