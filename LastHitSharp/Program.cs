@@ -326,7 +326,7 @@ namespace LastHitSharp
                          (target.ClassID == ClassID.CDOTA_BaseNPC_Tower &&
                           me.Distance2D(target) <= attackRange + 300)) &&
                         (target.Health >
-                         ((Unit) target).DamageTaken(damage, DamageType.Physical, me)) && target != null)
+                         ((Unit) target).DamageTaken(damage, DamageType.Physical, me)))
                     {
                         if (Utils.SleepCheck("stop"))
                         {
@@ -344,7 +344,7 @@ namespace LastHitSharp
                     }
                     else if (target.Health <
                              ((Unit) target).DamageTaken(damage, DamageType.Physical, me) &&
-                             Utils.SleepCheck("StopIt") && target != null)
+                             Utils.SleepCheck("StopIt"))
                     {
                         me.Attack((Unit) target);
                         Utils.Sleep(250, "StopIt");
