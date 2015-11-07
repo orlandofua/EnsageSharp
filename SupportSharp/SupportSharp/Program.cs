@@ -575,43 +575,32 @@ namespace SupportSharp
                         {
                             if (ally.Health <= (ally.MaximumHealth*0.7) && healSpell.CanBeCasted() &&
                                 self.Distance2D(fountain) > 2000 && IsInDanger(ally) &&
-                                ally.Health + amount[healSpell.Level - 1] <= ally.MaximumHealth)
+                                ally.Health + amount[healSpell.Level - 1] <= ally.MaximumHealth && (me.ClassID != ClassID.CDOTA_Unit_Hero_WitchDoctor || !me.Spellbook.SpellW.IsToggled))
                             {
                                 if (targettingType == 1)
                                     CastHeal(healSpell, ally);
                                 else if (targettingType == 2)
                                     CastHeal(healSpell);
-                                else if (targettingType == 3)
+                                else if (targettingType == 3 && Utils.SleepCheck("ToggleHeal"))
                                 {
-                                    /*if (healSpell.CanBeCasted() && !healSpell.IsChanneling)
-                                    {
-                                        Console.Write("Casting Heal");
-                                        CastHeal(healSpell);
-                                    }
-                                    else
-                                    {
-                                        if (ally.Health > (ally.MaximumHealth*0.7) && healSpell.IsChanneling)
-                                        {
-                                            Console.Write("Casting Heal");
-                                            CastHeal(healSpell);
-                                        }
-                                    }*/
-
-                                    if (healSpell.CanBeCasted() && Utils.SleepCheck("ToggleHeal"))
+                                    /*if (healSpell.CanBeCasted() && Utils.SleepCheck("ToggleHeal"))
                                     {
                                         if (!healSpell.IsToggled)
                                         {
                                             CastHeal(healSpell);
-                                            Utils.Sleep(100 + Game.Ping, "ToggleHeal");
+                                            Utils.Sleep(1000 + Game.Ping, "ToggleHeal");
                                         }
-                                    }
+                                    }*/
+
+                                    CastHeal(healSpell, null, true);
+                                    Utils.Sleep(1000 + Game.Ping, "ToggleHeal");
                                 }
                             }
                             else if (targettingType == 3 && ally.Health > (ally.MaximumHealth*0.7) && healSpell.IsToggled &&
                                      Utils.SleepCheck("ToggleHeal"))
                             {
-                                CastHeal(healSpell);
-                                Utils.Sleep(100 + Game.Ping, "ToggleHeal");
+                                healSpell.ToggleAbility();
+                                Utils.Sleep(1000 + Game.Ping, "ToggleHeal");
                             }
                         }
                     }
@@ -619,9 +608,9 @@ namespace SupportSharp
             }
         }
 
-        private static void CastHeal(Ability healSpell, Hero destination = null)
+        private static void CastHeal(Ability healSpell, Hero destination = null, bool toggle = false)
         {
-            if (destination != null)
+            /*if (destination != null)
             {
                 if (healSpell.CanBeCasted() && Utils.SleepCheck("Casting Heal"))
                 {
@@ -636,6 +625,32 @@ namespace SupportSharp
                     healSpell.UseAbility();
                     Utils.Sleep(healSpell.ChannelTime + Game.Ping, "Casting Heal");
                 }
+            }*/
+
+            if (healSpell != null && healSpell.CanBeCasted() && me.CanCast())
+            {
+                if (toggle)
+                {
+                    if (!healSpell.IsToggled)
+                    {
+                        healSpell.ToggleAbility();
+                    }
+                }
+                else
+                {
+                    if (destination == null)
+                    {
+                    }
+                    else
+                    {
+                        healSpell.UseAbility(target);
+                        if (healSpell.Name == "wisp_tether" && !me.Spellbook.SpellW.IsToggled &&
+                            me.Spellbook.SpellW.Cooldown == 0)
+                        {
+                            me.Spellbook.Spell4.ToggleAbility();
+                        }
+                    }
+                }
             }
         }
 
@@ -643,6 +658,19 @@ namespace SupportSharp
         {
             if (ally != null && ally.IsAlive)
             {
+                var projectiles = ObjectMgr.Projectiles.Where(x => Equals(x.Target, ally)).ToList();
+
+                if (projectiles.Any())
+                {
+                    foreach (var projectile in projectiles)
+                    {
+                        if (projectile.Source != null && Equals(projectile.Target, ally))
+                        {
+                            return true;
+                        }
+                    }
+                }
+
                 var percHealth = ally.Health <= (ally.MaximumHealth*0.7);
                 var enemies =
                     ObjectMgr.GetEntities<Hero>()
