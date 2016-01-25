@@ -74,7 +74,7 @@ namespace LastHitSharp
                 Utils.Sleep(200, "toggle");
             }
 
-            aPoint = ((UnitDatabase.GetAttackPoint(me)*100)/(1 + me.AttackSpeedValue))*1000;
+            aPoint = ((UnitDatabase.GetAttackPoint(me)*100)/(1 + me.AttackSpeedValue))*10;
             aRange = me.AttackRange;
             bonus = 0;
             buffer = 0;
