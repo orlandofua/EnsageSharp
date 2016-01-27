@@ -1,17 +1,14 @@
 ﻿using System;
 using System.Linq;
-using System.Windows.Input;
 using Ensage;
 using Ensage.Common;
+using Ensage.Common.Menu;
 using Ensage.Common.Extensions;
-using SharpDX;
 
 namespace LastHitSharp
 {
     internal class Program
     {
-        private const Key toggleKey = Key.G;
-        private static bool active = true;
         private static bool Jinada;
         private static bool TideBringer;
         private static Hero me;
@@ -23,15 +20,26 @@ namespace LastHitSharp
         private static int buffer;
         private static string toggleText;
         private static Entity target;
-        private static float damage;
+        private static double damage;
         private static Item qblade;
         private static Item bfury;
+
+        private static Menu lasthitMenu;
+        private static bool active;
+
+        private static void CreateMenu()
+        {
+            lasthitMenu = new Menu("LastHitSharp!", "lastHitSharp", true);
+            lasthitMenu.AddItem(new MenuItem("toggleKey", "Enabled").SetValue(new KeyBind('T', KeyBindType.Toggle, true)));
+            active = lasthitMenu.Item("toggleKey").GetValue<bool>();
+        }
 
         private static void Main(string[] args)
         {
             Game.OnUpdate += Game_OnUpdate;
             Player.OnExecuteOrder += Player_OnExecuteOrder;
-            Drawing.OnDraw += Drawing_OnDraw;
+
+            CreateMenu();
         }
 
         private static void Game_OnUpdate(EventArgs args)
@@ -46,33 +54,15 @@ namespace LastHitSharp
                 }
 
                 loaded = true;
-                toggleText = "(" + toggleKey + ") Last Hit: On";
             }
 
             if (me == null || !me.IsValid)
             {
                 loaded = false;
                 me = ObjectMgr.LocalHero;
-                active = false;
             }
 
             if (Game.IsPaused) return;
-
-            if (Game.IsKeyDown(toggleKey) && Utils.SleepCheck("toggle") && !Game.IsChatOpen && !Game.IsPaused && !Game.IsWatchingGame)
-            {
-                if (!active)
-                {
-                    active = true;
-                    toggleText = "(" + toggleKey + ") Last Hit: On";
-                }
-                else
-                {
-                    active = false;
-                    toggleText = "(" + toggleKey + ") Last Hit: Off";
-                }
-
-                Utils.Sleep(200, "toggle");
-            }
 
             aPoint = ((UnitDatabase.GetAttackPoint(me)*100)/(1 + me.AttackSpeedValue))*1000;
             aRange = me.AttackRange;
@@ -129,15 +119,15 @@ namespace LastHitSharp
                 {
                     if (qblade != null &&
                         (!(bfury != null || TideBringer || target.ClassID == ClassID.CDOTA_BaseNPC_Tower ||
-                          target.ClassID == ClassID.CDOTA_BaseNPC_Creep_Siege)))
+                           target.ClassID == ClassID.CDOTA_BaseNPC_Creep_Siege)))
                     {
                         if (attackRange > 195)
                         {
-                            damage = (float) (me.MinimumDamage*1.15 + me.BonusDamage);
+                            damage = (me.MinimumDamage*1.15 + me.BonusDamage);
                         }
                         else
                         {
-                            damage = (float) (me.MinimumDamage*1.40 + me.BonusDamage);
+                            damage = (me.MinimumDamage*1.40 + me.BonusDamage);
                         }
                     }
 
@@ -147,11 +137,11 @@ namespace LastHitSharp
                     {
                         if (attackRange > 195)
                         {
-                            damage = (float) (me.MinimumDamage*1.25 + me.BonusDamage);
+                            damage = (me.MinimumDamage*1.25 + me.BonusDamage);
                         }
                         else
                         {
-                            damage = (float) (me.MinimumDamage*1.60 + me.BonusDamage);
+                            damage = (me.MinimumDamage*1.60 + me.BonusDamage);
                         }
                     }
 
@@ -164,9 +154,10 @@ namespace LastHitSharp
                             ((Unit) target).MaximumMana > 0 && ((Unit) target).Mana > 0 &&
                             target.Team != me.Team)
                         {
-                            damage = (float) (damage + Manaburn[Manabreak.Level - 1]*0.60);
+                            damage = (damage + Manaburn[Manabreak.Level - 1]*0.60);
                         }
                     }
+
 
                     if (me.ClassID == ClassID.CDOTA_Unit_Hero_Viper)
                     {
@@ -294,7 +285,7 @@ namespace LastHitSharp
 
                     if (me.ClassID == ClassID.CDOTA_Unit_Hero_Riki &&
                         (target.ClassID != ClassID.CDOTA_BaseNPC_Creep_Siege ||
-                          target.ClassID != ClassID.CDOTA_BaseNPC_Tower))
+                         target.ClassID != ClassID.CDOTA_BaseNPC_Tower))
                     {
                         if ((me.Rotation + 180 > target.Rotation + 180 - (220/2) &&
                              me.Rotation + 180 < target.Rotation + 180 + (220/2)) &&
@@ -307,7 +298,7 @@ namespace LastHitSharp
                     if (target.ClassID == ClassID.CDOTA_BaseNPC_Creep_Siege ||
                         target.ClassID == ClassID.CDOTA_BaseNPC_Tower)
                     {
-                        damage = damage / 2;
+                        damage = damage/2;
                     }
 
                     if (target.Team == me.Team && qblade != null &&
@@ -316,17 +307,13 @@ namespace LastHitSharp
                         damage = me.MinimumDamage + me.BonusDamage;
                     }
 
-                    toggleText = "(" + toggleKey + ") Last Hit: ON | Target HP = " + target.Health +
-                                 "| Damage = " +
-                                 ((Unit) target).DamageTaken(damage, DamageType.Physical, me) + "";
-
                     if ((((target.ClassID == ClassID.CDOTA_BaseNPC_Creep_Lane ||
                            target.ClassID == ClassID.CDOTA_BaseNPC_Creep_Siege) &&
                           me.Distance2D(target) <= attackRange + 100) ||
                          (target.ClassID == ClassID.CDOTA_BaseNPC_Tower &&
                           me.Distance2D(target) <= attackRange + 300)) &&
                         (target.Health >
-                         ((Unit) target).DamageTaken(damage, DamageType.Physical, me)))
+                         ((Unit) target).DamageTaken((float) damage, DamageType.Physical, me)))
                     {
                         if (Utils.SleepCheck("stop"))
                         {
@@ -343,7 +330,7 @@ namespace LastHitSharp
                         }
                     }
                     else if (target.Health <
-                             ((Unit) target).DamageTaken(damage, DamageType.Physical, me) &&
+                             ((Unit) target).DamageTaken((float) damage, DamageType.Physical, me) &&
                              Utils.SleepCheck("StopIt"))
                     {
                         me.Attack((Unit) target);
@@ -377,16 +364,6 @@ namespace LastHitSharp
                 {
                     target = args.Target;
                 }
-            }
-        }
-
-        private static void Drawing_OnDraw(EventArgs args)
-        {
-            if (loaded)
-            {
-                Drawing.DrawText("LastHitSharp!", new Vector2(Drawing.Width*5/100, Drawing.Height * 19/100), Color.LightGreen, FontFlags.DropShadow );
-                Drawing.DrawText(toggleText,
-                    new Vector2(Drawing.Width*5/100, Drawing.Height*20/100), Color.LightGreen, FontFlags.DropShadow);
             }
         }
     }
