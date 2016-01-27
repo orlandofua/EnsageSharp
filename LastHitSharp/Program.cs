@@ -31,7 +31,9 @@ namespace LastHitSharp
         {
             lasthitMenu = new Menu("LastHitSharp!", "lastHitSharp", true);
             lasthitMenu.AddItem(new MenuItem("toggleKey", "Enabled").SetValue(new KeyBind('T', KeyBindType.Toggle, true)));
+            lasthitMenu.AddToMainMenu();
             active = lasthitMenu.Item("toggleKey").GetValue<bool>();
+
         }
 
         private static void Main(string[] args)
